@@ -1,0 +1,41 @@
+:root {
+  --tp-base-background-opacity: 0.41;
+  --tp-base-background-color: hsla(0, 0%, 10%, var(--tp-base-background-opacity));
+  --tp-base-shadow-color: hsla(0, 0%, 0%, 0.2);
+  --tp-base-border-radius: 0px;
+  --tp-blade-border-radius: 0px;
+  --bld-br: 0px;
+  --tp-button-background-color: hsla(0, 0%, 80%, 1);
+  --tp-button-background-color-active: hsla(0, 0%, 100%, 1);
+  --tp-button-background-color-focus: hsla(0, 0%, 95%, 1);
+  --tp-button-background-color-hover: hsla(0, 0%, 85%, 1);
+  --tp-button-foreground-color: hsla(0, 0%, 0%, 0.8);
+  --tp-container-background-color: hsla(0, 0%, 0%, 0.2);
+  --tp-container-background-color-active: hsla(0, 0%, 0%, 0.2);
+  --tp-container-background-color-focus: hsla(0, 0%, 0%, 0.2);
+  --tp-container-background-color-hover: hsla(0, 0%, 0%, 0.2);
+  --tp-container-foreground-color: hsla(0, 0%, 100%, 0.8);
+  --tp-groove-foreground-color: hsla(0, 0%, 0%, 0.8);
+  --tp-input-background-color: hsla(0, 3%, 34%, 0.2);
+  --tp-input-background-color-active: hsla(0, 0%, 0%, 0.2);
+  --tp-input-background-color-focus: hsla(0, 0%, 0%, 0.2);
+  --tp-input-background-color-hover: hsla(0, 3%, 34%, 0.3);
+  --tp-input-foreground-color: hsla(0, 0%, 100%, 0.8);
+  --tp-label-foreground-color: hsla(0, 0%, 100%, 0.8);
+  --tp-monitor-background-color: hsla(0, 0%, 0%, 0.2);
+  --tp-monitor-foreground-color: hsla(0, 0%, 100%, 0.8);
+}
+
+#controlPanel {
+  --cPanelWidth: 340px;
+  --cPanelRightMargin: 10px;
+  --leftRightMargin: calc(var(--cPanelRightMargin) * 2);
+  --cPanelFinalWidth: min(var(--cPanelWidth), 100vw - var(--leftRightMargin));
+  position: absolute;
+  top: 10px;
+  right: var(--cPanelRightMargin);
+  width: var(--cPanelFinalWidth);
+}
+
+
+
