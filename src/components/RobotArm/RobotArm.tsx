@@ -8,11 +8,20 @@ export const RobotArm = (
     armDiameter: number;
     armRotation: number;
     centerPercentage: number;
+    isTransparent?: boolean;
   }
 ) => {
   const meshRef = useRef<THREE.Mesh | null>(null);
   const lastTranslation = useRef(new THREE.Vector3());
-  const { armLength, armDiameter, armRotation, position, centerPercentage, ...meshProps } = props;
+  const {
+    armLength,
+    armDiameter,
+    armRotation,
+    position,
+    centerPercentage,
+    isTransparent = false,
+    ...meshProps
+  } = props;
 
   // initial reset
   useEffect(() => {
@@ -76,15 +85,22 @@ export const RobotArm = (
   return (
     <mesh
       {...meshProps}
-      castShadow
-      receiveShadow
+      castShadow={!isTransparent}
+      receiveShadow={!isTransparent}
       ref={meshRef}
       position={position}
       scale={[armLength, armDiameter, armDiameter]}
       rotation={[0, 0, armRotation]}
     >
       <cylinderGeometry args={[0.5, 0.5, 1]} />
-      <meshStandardMaterial color={0xcccccc} roughness={0} metalness={0} side={THREE.FrontSide} />
+      <meshStandardMaterial
+        color={0xcccccc}
+        roughness={0}
+        metalness={0}
+        side={THREE.FrontSide}
+        opacity={0.3}
+        transparent={isTransparent}
+      />
       {props.children}
     </mesh>
   );

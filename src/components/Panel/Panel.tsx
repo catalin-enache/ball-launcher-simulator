@@ -10,6 +10,7 @@ panelContainer.addEventListener('pointerdown', (evt) => {
 const ARM_LENGTH = 0.2;
 const ARM_DIAMETER = 0.015;
 const ARM_ROTATION_START = 0;
+const ARM_ROTATION_END = 0;
 const ARM_CENTER_POSITION = 0.03;
 const ARM_CENTER_PERCENTAGE = ARM_CENTER_POSITION / ARM_LENGTH;
 const BALL_DIAMETER = 0.015;
@@ -18,6 +19,7 @@ export const config = {
   armLength: ARM_LENGTH,
   armDiameter: ARM_DIAMETER,
   armRotationStart: ARM_ROTATION_START,
+  armRotationEnd: ARM_ROTATION_END,
   armCenterPercentage: ARM_CENTER_PERCENTAGE,
   ballDiameter: BALL_DIAMETER
 };
@@ -66,11 +68,22 @@ export const Panel = (props: PanelProps) => {
         label: 'Arm Rotation Start',
         min: -180,
         max: 180,
-        pointerScale: 0.01,
-        step: 0.01
+        pointerScale: 0.001,
+        step: 0.001
       })
       .on('change', () => {
         onChange('armRotationStart');
+      });
+    folder
+      .addBinding(config, 'armRotationEnd', {
+        label: 'Arm Rotation End',
+        min: -180,
+        max: 180,
+        pointerScale: 0.001,
+        step: 0.001
+      })
+      .on('change', () => {
+        onChange('armRotationEnd');
       });
     folder
       .addBinding(config, 'armCenterPercentage', {

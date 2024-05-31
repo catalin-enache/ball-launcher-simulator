@@ -34,7 +34,8 @@ export function Experience() {
 
   const [armLength, setArmLength] = useState(config.armLength);
   const [armDiameter, setArmDiameter] = useState(config.armDiameter);
-  const [armRotation, setArmRotation] = useState(+degToRad(config.armRotationStart).toFixed(2));
+  const [armRotationStart, setArmRotationStart] = useState(+degToRad(config.armRotationStart).toFixed(3));
+  const [armRotationEnd, setArmRotationEnd] = useState(+degToRad(config.armRotationEnd).toFixed(3));
   const [armCenterPercentage, setArmCenterPercentage] = useState(config.armCenterPercentage);
   const [ballDiameter, setBallDiameter] = useState(config.ballDiameter);
 
@@ -48,7 +49,7 @@ export function Experience() {
   // << reset ball
 
   // apply ball changes >>
-  rotateAroundPoint(ballBasePosition, ballBaseQuaternion, rotateAroundPointInSpace, rotationAxis, armRotation);
+  rotateAroundPoint(ballBasePosition, ballBaseQuaternion, rotateAroundPointInSpace, rotationAxis, armRotationStart);
   ballRotation.setFromQuaternion(ballBaseQuaternion);
   // << apply ball changes
 
@@ -67,7 +68,10 @@ export function Experience() {
         setArmDiameter(+config.armDiameter.toFixed(3));
         break;
       case 'armRotationStart':
-        setArmRotation(+degToRad(config.armRotationStart).toFixed(2));
+        setArmRotationStart(+degToRad(config.armRotationStart).toFixed(3));
+        break;
+      case 'armRotationEnd':
+        setArmRotationEnd(+degToRad(config.armRotationEnd).toFixed(3));
         break;
       case 'armCenterPercentage':
         setArmCenterPercentage(+config.armCenterPercentage.toFixed(2));
@@ -123,8 +127,16 @@ export function Experience() {
           position={[0, ROBOT_FLOOR_DISTANCE, WALL_Z_POSITION + ARBITRARY_Z_OFFSET]}
           armLength={armLength}
           armDiameter={armDiameter}
-          armRotation={armRotation}
+          armRotation={armRotationStart}
           centerPercentage={armCenterPercentage}
+        />
+        <RobotArm
+          position={[0, ROBOT_FLOOR_DISTANCE, WALL_Z_POSITION + ARBITRARY_Z_OFFSET]}
+          armLength={armLength}
+          armDiameter={armDiameter}
+          armRotation={armRotationEnd}
+          centerPercentage={armCenterPercentage}
+          isTransparent
         />
         <Ball
           position={[ballBasePosition.x, ballBasePosition.y, ballBasePosition.z]}
