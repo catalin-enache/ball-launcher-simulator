@@ -29,9 +29,9 @@ export const RobotArm = (
     mesh.position.set(0, 0, 0);
     mesh.updateMatrix();
 
-    const baseTranslation = 1 / 2; // by default the cylinder center is in the middle
-    // translating origin point to bottom og the cylinder
-    mesh.geometry.translate(0, baseTranslation, 0);
+    // by default the cylinder center is in the middle
+    // translating origin point to bottom of the cylinder
+    mesh.geometry.translate(0, 1 / 2, 0);
 
     const rotationMatrix = new THREE.Matrix4();
     rotationMatrix.makeRotationZ(-Math.PI / 2);
@@ -83,7 +83,7 @@ export const RobotArm = (
       scale={[armLength, armDiameter, armDiameter]}
       rotation={[0, 0, armRotation]}
     >
-      <cylinderGeometry args={[1, 1, 1]} />
+      <cylinderGeometry args={[0.5, 0.5, 1]} />
       <meshStandardMaterial color={0xcccccc} roughness={0} metalness={0} side={THREE.FrontSide} />
       {props.children}
     </mesh>

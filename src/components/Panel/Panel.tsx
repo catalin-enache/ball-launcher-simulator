@@ -10,14 +10,16 @@ panelContainer.addEventListener('pointerdown', (evt) => {
 const ARM_LENGTH = 0.2;
 const ARM_DIAMETER = 0.015;
 const ARM_ROTATION_START = 0;
-const CENTER_POSITION = 0.03;
-const CENTER_PERCENTAGE = CENTER_POSITION / ARM_LENGTH;
+const ARM_CENTER_POSITION = 0.03;
+const ARM_CENTER_PERCENTAGE = ARM_CENTER_POSITION / ARM_LENGTH;
+const BALL_DIAMETER = 0.015;
 
 export const config = {
   armLength: ARM_LENGTH,
   armDiameter: ARM_DIAMETER,
   armRotationStart: ARM_ROTATION_START,
-  centerPercentage: CENTER_PERCENTAGE
+  armCenterPercentage: ARM_CENTER_PERCENTAGE,
+  ballDiameter: BALL_DIAMETER
 };
 
 interface PanelProps {
@@ -71,7 +73,7 @@ export const Panel = (props: PanelProps) => {
         onChange('armRotationStart');
       });
     folder
-      .addBinding(config, 'centerPercentage', {
+      .addBinding(config, 'armCenterPercentage', {
         label: 'Arm Center %',
         min: 0.01,
         max: 0.99,
@@ -79,7 +81,18 @@ export const Panel = (props: PanelProps) => {
         step: 0.01
       })
       .on('change', () => {
-        onChange('centerPercentage');
+        onChange('armCenterPercentage');
+      });
+    folder
+      .addBinding(config, 'ballDiameter', {
+        label: 'Ball Diameter',
+        min: 0.01,
+        max: 0.02,
+        pointerScale: 0.001,
+        step: 0.001
+      })
+      .on('change', () => {
+        onChange('ballDiameter');
       });
   }, []);
   return null;
