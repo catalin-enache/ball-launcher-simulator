@@ -10,10 +10,11 @@ panelContainer.addEventListener('pointerdown', (evt) => {
 const ARM_LENGTH = 0.2;
 const ARM_DIAMETER = 0.015;
 const ARM_ROTATION_START = 0;
-const ARM_ROTATION_END = 0;
+const ARM_ROTATION_END = 45;
 const ARM_CENTER_POSITION = 0.03;
 const ARM_CENTER_PERCENTAGE = ARM_CENTER_POSITION / ARM_LENGTH;
 const BALL_DIAMETER = 0.015;
+const TORQUE = 2;
 
 export const config = {
   armLength: ARM_LENGTH,
@@ -21,7 +22,8 @@ export const config = {
   armRotationStart: ARM_ROTATION_START,
   armRotationEnd: ARM_ROTATION_END,
   armCenterPercentage: ARM_CENTER_PERCENTAGE,
-  ballDiameter: BALL_DIAMETER
+  ballDiameter: BALL_DIAMETER,
+  torque: TORQUE
 };
 
 interface PanelProps {
@@ -106,6 +108,17 @@ export const Panel = (props: PanelProps) => {
       })
       .on('change', () => {
         onChange('ballDiameter');
+      });
+    folder
+      .addBinding(config, 'torque', {
+        label: 'Torque',
+        min: 0,
+        max: 4,
+        pointerScale: 0.01,
+        step: 0.01
+      })
+      .on('change', () => {
+        onChange('torque');
       });
   }, []);
   return null;

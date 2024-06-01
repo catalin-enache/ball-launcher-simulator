@@ -6,6 +6,23 @@ import Stats from 'three/addons/libs/stats.module.js';
 import { usePlay } from 'lib/hooks';
 import { degToRad } from 'src/lib/utils';
 import { rotateAroundPoint } from 'src/lib/graphicsCalculations';
+import {
+  getArmVolume,
+  getArmMomentOfInertia,
+  getBallVolume,
+  getBallMomentOfInertia,
+  getMass,
+  getAngularAcceleration,
+  getTimeToReachEndAngle,
+  getTimeToReachMaxVelocity,
+  getAngularVelocity,
+  getLinearVelocity,
+  getHVComponentsFromLinearVelocity,
+  getAngularDisplacement,
+  // getBallMotion,
+  ARM_DENSITY,
+  BALL_DENSITY
+} from 'src/lib/physicsCalculations';
 
 import { Panel, config } from 'src/components/Panel/Panel';
 import { RobotArm } from 'src/components/RobotArm/RobotArm';
@@ -38,6 +55,39 @@ export function Experience() {
   const [armRotationEnd, setArmRotationEnd] = useState(+degToRad(config.armRotationEnd).toFixed(3));
   const [armCenterPercentage, setArmCenterPercentage] = useState(config.armCenterPercentage);
   const [ballDiameter, setBallDiameter] = useState(config.ballDiameter);
+  const [torque, setTorque] = useState(config.torque);
+
+  const armLengthFromPivot = armLength - armLength * armCenterPercentage;
+  const armVolume = getArmVolume(armDiameter / 2, armLength);
+  const armMass = getMass(armVolume, ARM_DENSITY);
+  const armMOI = getArmMomentOfInertia(armMass, armLength, armCenterPercentage);
+  const ballVolume = getBallVolume(ballDiameter / 2);
+  const ballMass = getMass(ballVolume, BALL_DENSITY);
+  const ballMOI = getBallMomentOfInertia(ballMass, armLengthFromPivot);
+  const totalMOI = armMOI + ballMOI;
+  const angularAcceleration = getAngularAcceleration(torque, totalMOI);
+  const timeToReachEndAngle = getTimeToReachEndAngle(angularAcceleration, armRotationEnd);
+  const timeToReachMaxVelocity = getTimeToReachMaxVelocity(angularAcceleration);
+  const angularDisplacementAtMaxVelocity = getAngularDisplacement(timeToReachMaxVelocity, angularAcceleration);
+  const angularVelocityAtRelease = getAngularVelocity(angularAcceleration, timeToReachEndAngle);
+  const linearVelocityAtRelease = getLinearVelocity(angularVelocityAtRelease, armLengthFromPivot);
+  const hvComponents = getHVComponentsFromLinearVelocity(linearVelocityAtRelease, armRotationEnd);
+  // getBallMotion
+
+  console.log('details', {
+    ballMass,
+    armMass,
+    armMOI,
+    ballMOI,
+    totalMOI,
+    angularAcceleration,
+    timeToReachEndAngle,
+    timeToReachMaxVelocity,
+    angularDisplacementAtMaxVelocity,
+    angularVelocityAtRelease,
+    linearVelocityAtRelease,
+    hvComponents
+  });
 
   // reset ball >>
   ballBasePosition.set(
@@ -78,6 +128,9 @@ export function Experience() {
         break;
       case 'ballDiameter':
         setBallDiameter(+config.ballDiameter.toFixed(3));
+        break;
+      case 'torque':
+        setTorque(+config.torque.toFixed(2));
         break;
       default:
         break;
