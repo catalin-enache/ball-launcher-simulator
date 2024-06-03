@@ -117,3 +117,7 @@ export const getBallMotion = (velocity: number, angle: number, time: number) => 
     y: velocity * Math.sin(adjustedAngle) * time - 0.5 * 9.81 * time ** 2
   };
 };
+
+export const getBallRotationAfterRelease = (ballAngularVelocity: number, time: number) => {
+  return ballAngularVelocity * time;
+};
