@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 // @ts-ignore
 import Stats from 'three/addons/libs/stats.module.js';
@@ -30,13 +30,10 @@ import { Robot } from 'src/components/Robot/Robot';
 import { Ball } from 'src/components/Ball/Ball';
 import { DrawTrajectory } from 'src/components/DrawTrajectory/DrawTrajectory';
 
+import { WALL_Z_POSITION, ROBOT_FLOOR_DISTANCE, ARBITRARY_Z_OFFSET } from 'src/components/Panel/Panel';
+
 const stats = new Stats();
 document.body.appendChild(stats.dom);
-
-const WALL_Z_POSITION = -0.1;
-const ROBOT_FLOOR_DISTANCE = 1;
-// 0.23 is arbitrary value to place the arm in front of the robot
-const ARBITRARY_Z_OFFSET = 0.23;
 
 const ballBasePosition = new THREE.Vector3(0, 0, 0);
 const ballBaseQuaternion = new THREE.Quaternion();
@@ -90,15 +87,18 @@ export function Experience() {
 
   const currentArmRotation = isPlaying ? armRotationStart + angularDisplacement : armRotationStart;
 
+  const ballBasePositionXYZ = useMemo(() => {
+    const x = armLength - armLength * armCenterPercentage - ballDiameter / 2;
+    const y = ROBOT_FLOOR_DISTANCE + armDiameter / 2 + ballDiameter / 2;
+    const z = WALL_Z_POSITION + ARBITRARY_Z_OFFSET;
+    return { x, y, z };
+  }, [armLength, armCenterPercentage, ballDiameter, armDiameter]);
+
   // apply ball changes >>
   if (!releaseAngleWasReachedRef.current) {
     // during arm rotation
     // reset ball >>
-    ballBasePosition.set(
-      armLength - armLength * armCenterPercentage - ballDiameter / 2,
-      ROBOT_FLOOR_DISTANCE + armDiameter / 2 + ballDiameter / 2,
-      WALL_Z_POSITION + ARBITRARY_Z_OFFSET
-    );
+    ballBasePosition.set(ballBasePositionXYZ.x, ballBasePositionXYZ.y, ballBasePositionXYZ.z);
     ballBaseQuaternion.set(0, 0, 0, 1);
     // << reset ball
     // apply rotation around point >>
@@ -257,10 +257,11 @@ export function Experience() {
           rotation={[ballRotation.x, ballRotation.y, ballRotation.z]}
         />
         <DrawTrajectory
-          angularVelocityAtRelease={angularVelocityAtRelease}
+          linearVelocityAtRelease={linearVelocityAtRelease}
           interval={0.001}
-          totalTime={2}
-          releaseAngle={releaseAngle}
+          totalTime={5}
+          ballBasePositionXYZ={ballBasePositionXYZ}
+          armRotationEnd={armRotationEnd}
         />
       </>
 

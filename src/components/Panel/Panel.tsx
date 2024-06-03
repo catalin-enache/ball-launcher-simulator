@@ -2,6 +2,11 @@ import { useRef, useEffect } from 'react';
 import { Pane } from 'tweakpane';
 import './Panel.css';
 
+export const WALL_Z_POSITION = -0.1;
+export const ROBOT_FLOOR_DISTANCE = 1;
+// 0.23 is arbitrary value to place the arm in front of the robot
+export const ARBITRARY_Z_OFFSET = 0.23;
+
 const panelContainer = document.getElementById('controlPanel')!;
 panelContainer.addEventListener('pointerdown', (evt) => {
   evt.stopPropagation();
