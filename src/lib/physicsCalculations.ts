@@ -108,7 +108,7 @@ export const getHVComponentsFromLinearVelocity = (velocity: number, angle: numbe
   };
 };
 
-export const getBallMotion = (velocity: number, angle: number, time: number) => {
+export const getBallMotionAfterRelease = (velocity: number, angle: number, time: number) => {
   const adjustedAngle = angle + Math.PI / 2; // perpendicular to the arm
   // x = vcosθt
   // y = vsinθt - 1/2gt^2

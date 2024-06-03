@@ -3,6 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 // @ts-ignore
 import Stats from 'three/addons/libs/stats.module.js';
+import { useAppStore } from 'src/store';
 import { usePlay } from 'lib/hooks';
 import { degToRad } from 'src/lib/utils';
 import { rotateAroundPoint } from 'src/lib/graphicsCalculations';
@@ -14,12 +15,11 @@ import {
   getMass,
   getAngularAcceleration,
   getTimeToReachEndAngle,
-  getTimeToReachMaxVelocity,
   getAngularVelocity,
   getLinearVelocity,
-  getHVComponentsFromLinearVelocity,
   getAngularDisplacement,
-  // getBallMotion,
+  getBallMotionAfterRelease,
+  getBallRotationAfterRelease,
   ARM_DENSITY,
   BALL_DENSITY
 } from 'src/lib/physicsCalculations';
@@ -28,6 +28,7 @@ import { Panel, config } from 'src/components/Panel/Panel';
 import { RobotArm } from 'src/components/RobotArm/RobotArm';
 import { Robot } from 'src/components/Robot/Robot';
 import { Ball } from 'src/components/Ball/Ball';
+import { DrawTrajectory } from 'src/components/DrawTrajectory/DrawTrajectory';
 
 const stats = new Stats();
 document.body.appendChild(stats.dom);
@@ -40,15 +41,28 @@ const ARBITRARY_Z_OFFSET = 0.23;
 const ballBasePosition = new THREE.Vector3(0, 0, 0);
 const ballBaseQuaternion = new THREE.Quaternion();
 const ballRotation = new THREE.Euler();
-const rotateAroundPointInSpace = new THREE.Vector3(0, ROBOT_FLOOR_DISTANCE, 0);
+const pointToRotateAround = new THREE.Vector3(0, ROBOT_FLOOR_DISTANCE, 0);
 const rotationAxis = new THREE.Vector3(0, 0, 1);
 
+const getReleaseAngle = (start: number, end: number) => {
+  const diff = end - start;
+  if (diff < 0) {
+    return 2 * Math.PI + diff;
+  }
+  return diff;
+};
+
 export function Experience() {
-  // @ts-ignore
-  // const { scene, gl, clock } = useThree();
+  const playState = useAppStore((state) => state.playState);
+  const isPlaying = playState === 'play' || playState === 'pause';
+  const setPlayState = useAppStore((state) => state.setPlayState);
 
   const refDirectionalLight = useRef<THREE.DirectionalLight>(null!);
-
+  const releaseAngleWasReachedRef = useRef(false);
+  const ballPositionAtReleaseRef = useRef(new THREE.Vector3());
+  const ballRotationAtReleaseRef = useRef(new THREE.Euler());
+  const ballPositionAtReleaseHasBeenCopiedRef = useRef(false);
+  const [time, setTime] = useState(0);
   const [armLength, setArmLength] = useState(config.armLength);
   const [armDiameter, setArmDiameter] = useState(config.armDiameter);
   const [armRotationStart, setArmRotationStart] = useState(+degToRad(config.armRotationStart).toFixed(3));
@@ -56,6 +70,8 @@ export function Experience() {
   const [armCenterPercentage, setArmCenterPercentage] = useState(config.armCenterPercentage);
   const [ballDiameter, setBallDiameter] = useState(config.ballDiameter);
   const [torque, setTorque] = useState(config.torque);
+
+  const releaseAngle = getReleaseAngle(armRotationStart, armRotationEnd);
 
   const armLengthFromPivot = armLength - armLength * armCenterPercentage;
   const armVolume = getArmVolume(armDiameter / 2, armLength);
@@ -65,49 +81,81 @@ export function Experience() {
   const ballMass = getMass(ballVolume, BALL_DENSITY);
   const ballMOI = getBallMomentOfInertia(ballMass, armLengthFromPivot);
   const totalMOI = armMOI + ballMOI;
-  const angularAcceleration = getAngularAcceleration(torque, totalMOI);
-  const timeToReachEndAngle = getTimeToReachEndAngle(angularAcceleration, armRotationEnd);
-  const timeToReachMaxVelocity = getTimeToReachMaxVelocity(angularAcceleration);
-  const angularDisplacementAtMaxVelocity = getAngularDisplacement(timeToReachMaxVelocity, angularAcceleration);
-  const angularVelocityAtRelease = getAngularVelocity(angularAcceleration, timeToReachEndAngle);
+  const angularAccelerationTotal = getAngularAcceleration(torque, totalMOI);
+  const timeToReachEndAngle = getTimeToReachEndAngle(angularAccelerationTotal, releaseAngle);
+  const angularVelocityAtRelease = getAngularVelocity(angularAccelerationTotal, timeToReachEndAngle);
   const linearVelocityAtRelease = getLinearVelocity(angularVelocityAtRelease, armLengthFromPivot);
-  const hvComponents = getHVComponentsFromLinearVelocity(linearVelocityAtRelease, armRotationEnd);
-  // getBallMotion
 
-  console.log('details', {
-    ballMass,
-    armMass,
-    armMOI,
-    ballMOI,
-    totalMOI,
-    angularAcceleration,
-    timeToReachEndAngle,
-    timeToReachMaxVelocity,
-    angularDisplacementAtMaxVelocity,
-    angularVelocityAtRelease,
-    linearVelocityAtRelease,
-    hvComponents
-  });
+  const angularDisplacement = getAngularDisplacement(Math.min(time, timeToReachEndAngle), angularAccelerationTotal);
 
-  // reset ball >>
-  ballBasePosition.set(
-    armLength - armLength * armCenterPercentage - ballDiameter / 2,
-    ROBOT_FLOOR_DISTANCE + armDiameter / 2 + ballDiameter / 2,
-    WALL_Z_POSITION + ARBITRARY_Z_OFFSET
-  );
-  ballBaseQuaternion.set(0, 0, 0, 1);
-  // << reset ball
+  const currentArmRotation = isPlaying ? armRotationStart + angularDisplacement : armRotationStart;
 
   // apply ball changes >>
-  rotateAroundPoint(ballBasePosition, ballBaseQuaternion, rotateAroundPointInSpace, rotationAxis, armRotationStart);
-  ballRotation.setFromQuaternion(ballBaseQuaternion);
+  if (!releaseAngleWasReachedRef.current) {
+    // during arm rotation
+    // reset ball >>
+    ballBasePosition.set(
+      armLength - armLength * armCenterPercentage - ballDiameter / 2,
+      ROBOT_FLOOR_DISTANCE + armDiameter / 2 + ballDiameter / 2,
+      WALL_Z_POSITION + ARBITRARY_Z_OFFSET
+    );
+    ballBaseQuaternion.set(0, 0, 0, 1);
+    // << reset ball
+    // apply rotation around point >>
+    rotateAroundPoint(ballBasePosition, ballBaseQuaternion, pointToRotateAround, rotationAxis, currentArmRotation);
+    ballRotation.setFromQuaternion(ballBaseQuaternion);
+    // << apply rotation around point
+  } else {
+    // after release
+    // ball motion >>
+    const timeSinceRelease = time - timeToReachEndAngle;
+    const motion = getBallMotionAfterRelease(linearVelocityAtRelease, currentArmRotation, timeSinceRelease);
+    ballBasePosition.x = motion.x + ballPositionAtReleaseRef.current.x;
+    ballBasePosition.y = motion.y + ballPositionAtReleaseRef.current.y;
+    // << ball motion
+    // ball rotation >>
+    const ballRotationAngle = getBallRotationAfterRelease(angularVelocityAtRelease, timeSinceRelease);
+    ballRotation.z = ballRotationAtReleaseRef.current.z + ballRotationAngle;
+    // << ball rotation
+  }
   // << apply ball changes
+
+  releaseAngleWasReachedRef.current = time > timeToReachEndAngle;
+  if (releaseAngleWasReachedRef.current && !ballPositionAtReleaseHasBeenCopiedRef.current) {
+    // console.log('copying ball position at release');
+    ballPositionAtReleaseRef.current.copy(ballBasePosition);
+    ballRotationAtReleaseRef.current.copy(ballRotation);
+    ballPositionAtReleaseHasBeenCopiedRef.current = true;
+  }
+
+  // console.log('details', {
+  //   // ballMass,
+  //   // armMass,
+  //   // armMOI,
+  //   // ballMOI,
+  //   // totalMOI,
+  //   // angularAcceleration,
+  //   releaseAngle: +radToDeg(releaseAngle).toFixed(3),
+  //   // timeToReachEndAngle,
+  //   // angularDisplacement: +radToDeg(angularDisplacement).toFixed(3),
+  //   currentArmRotation: +radToDeg(currentArmRotation).toFixed(3),
+  //   // 'releaseAngleWasReachedRef.current': releaseAngleWasReachedRef.current
+  //   // timeToReachMaxVelocity,
+  //   // angularDisplacementAtMaxVelocity,
+  //   // angularVelocityAtRelease,
+  //   armRotationEnd: +radToDeg(armRotationEnd).toFixed(3)
+  //   // time
+  //   // linearVelocityAtRelease,
+  //   // hvComponents
+  // });
 
   useFrame((_state, _delta) => {
     stats.update();
   });
 
-  usePlay((_state, _delta) => {});
+  usePlay((_state, _delta) => {
+    setTime((prev) => prev + _delta);
+  });
 
   const handleChange = useCallback((key: keyof typeof config) => {
     switch (key) {
@@ -137,6 +185,22 @@ export function Experience() {
     }
   }, []);
 
+  const handleAction = useCallback((action: string) => {
+    switch (action) {
+      case 'startPause':
+        setPlayState(useAppStore.getState().playState === 'play' ? 'pause' : 'play');
+        break;
+      case 'stop':
+        setPlayState('stop');
+        setTime(0);
+        releaseAngleWasReachedRef.current = false;
+        ballPositionAtReleaseHasBeenCopiedRef.current = false;
+        break;
+      default:
+        break;
+    }
+  }, []);
+
   return (
     <>
       <directionalLight
@@ -148,10 +212,6 @@ export function Experience() {
         shadow-camera-right={4}
         shadow-camera-top={4}
         shadow-camera-bottom={-4}
-        // shadow-normalBias={0.01}
-        // shadow-bias={-0.0001}
-        // shadow-radius={4}
-        // shadow-blurSamples={8}
         castShadow
         position={[2, 2, 2]}
         scale={1}
@@ -180,7 +240,7 @@ export function Experience() {
           position={[0, ROBOT_FLOOR_DISTANCE, WALL_Z_POSITION + ARBITRARY_Z_OFFSET]}
           armLength={armLength}
           armDiameter={armDiameter}
-          armRotation={armRotationStart}
+          armRotation={currentArmRotation}
           centerPercentage={armCenterPercentage}
         />
         <RobotArm
@@ -196,9 +256,15 @@ export function Experience() {
           scale={[ballDiameter, ballDiameter, ballDiameter]}
           rotation={[ballRotation.x, ballRotation.y, ballRotation.z]}
         />
+        <DrawTrajectory
+          angularVelocityAtRelease={angularVelocityAtRelease}
+          interval={0.001}
+          totalTime={2}
+          releaseAngle={releaseAngle}
+        />
       </>
 
-      <Panel onChange={handleChange} />
+      <Panel onChange={handleChange} onAction={handleAction} />
     </>
   );
 }
