@@ -67,6 +67,7 @@ export function Experience() {
   const [armCenterPercentage, setArmCenterPercentage] = useState(config.armCenterPercentage);
   const [ballDiameter, setBallDiameter] = useState(config.ballDiameter);
   const [torque, setTorque] = useState(config.torque);
+  const [showTrajectory, setShowTrajectory] = useState(true);
 
   const releaseAngle = getReleaseAngle(armRotationStart, armRotationEnd);
 
@@ -205,6 +206,9 @@ export function Experience() {
         releaseAngleWasReachedRef.current = false;
         ballPositionAtReleaseHasBeenCopiedRef.current = false;
         break;
+      case 'hideShowTrajectory':
+        setShowTrajectory((prev) => !prev);
+        break;
       default:
         break;
     }
@@ -269,6 +273,7 @@ export function Experience() {
           linearVelocityAtRelease={linearVelocityAtRelease}
           interval={0.0001}
           totalTime={5}
+          visible={showTrajectory}
           ballBasePositionXYZ={ballBasePositionXYZ}
           armRotationEnd={armRotationEnd}
           onHitFloorPosition={onHitFloorPosition}

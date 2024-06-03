@@ -140,6 +140,13 @@ export const Panel = (props: PanelProps) => {
       .on('click', () => {
         onAction('stop');
       });
+    folder
+      .addButton({
+        title: 'Trajectory Hide/Show'
+      })
+      .on('click', () => {
+        onAction('hideShowTrajectory');
+      });
   }, [onChange, onAction]);
   return null;
 };

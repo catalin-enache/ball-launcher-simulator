@@ -32,11 +32,19 @@ interface DrawTrajectoryProps {
   ballBasePositionXYZ: { x: number; y: number; z: number };
   armRotationEnd: number;
   onHitFloorPosition: (position: { x: number; y: number }) => void;
+  visible: boolean;
 }
 
 export const DrawTrajectory = memo((props: DrawTrajectoryProps) => {
-  const { linearVelocityAtRelease, totalTime, interval, ballBasePositionXYZ, armRotationEnd, onHitFloorPosition } =
-    props;
+  const {
+    linearVelocityAtRelease,
+    totalTime,
+    interval,
+    ballBasePositionXYZ,
+    armRotationEnd,
+    visible,
+    onHitFloorPosition
+  } = props;
 
   const geoMat = useMemo(() => {
     ballBasePosition.set(ballBasePositionXYZ.x, ballBasePositionXYZ.y, ballBasePositionXYZ.z);
@@ -63,5 +71,6 @@ export const DrawTrajectory = memo((props: DrawTrajectoryProps) => {
     return { bufferGeometry, material };
   }, [linearVelocityAtRelease, totalTime, interval, ballBasePositionXYZ, armRotationEnd, onHitFloorPosition]);
 
+  if (!visible) return null;
   return <lineSegments geometry={geoMat.bufferGeometry} material={geoMat.material} />;
 });
