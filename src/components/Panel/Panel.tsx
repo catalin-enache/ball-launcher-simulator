@@ -28,12 +28,13 @@ export const config = {
 
 interface PanelProps {
   onChange: (key: keyof typeof config) => void;
+  onAction: (action: string) => void;
 }
 
 export const Panel = (props: PanelProps) => {
   const paneRef = useRef<Pane | null>(null);
 
-  const { onChange } = props;
+  const { onChange, onAction } = props;
 
   useEffect(() => {
     paneRef.current = new Pane({
@@ -68,8 +69,8 @@ export const Panel = (props: PanelProps) => {
     folder
       .addBinding(config, 'armRotationStart', {
         label: 'Arm Rotation Start',
-        min: -180,
-        max: 180,
+        min: 0,
+        max: 360,
         pointerScale: 0.001,
         step: 0.001
       })
@@ -79,8 +80,8 @@ export const Panel = (props: PanelProps) => {
     folder
       .addBinding(config, 'armRotationEnd', {
         label: 'Arm Rotation End',
-        min: -180,
-        max: 180,
+        min: 0,
+        max: 360,
         pointerScale: 0.001,
         step: 0.001
       })
@@ -102,7 +103,7 @@ export const Panel = (props: PanelProps) => {
       .addBinding(config, 'ballDiameter', {
         label: 'Ball Diameter',
         min: 0.01,
-        max: 0.02,
+        max: 0.1,
         pointerScale: 0.001,
         step: 0.001
       })
@@ -112,7 +113,7 @@ export const Panel = (props: PanelProps) => {
     folder
       .addBinding(config, 'torque', {
         label: 'Torque',
-        min: 0,
+        min: 0.01,
         max: 4,
         pointerScale: 0.01,
         step: 0.01
@@ -120,6 +121,20 @@ export const Panel = (props: PanelProps) => {
       .on('change', () => {
         onChange('torque');
       });
-  }, []);
+    folder
+      .addButton({
+        title: 'Start/Pause'
+      })
+      .on('click', () => {
+        onAction('startPause');
+      });
+    folder
+      .addButton({
+        title: 'Stop'
+      })
+      .on('click', () => {
+        onAction('stop');
+      });
+  }, [onChange, onAction]);
   return null;
 };

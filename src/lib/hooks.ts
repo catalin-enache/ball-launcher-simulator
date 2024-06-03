@@ -8,6 +8,6 @@ export const usePlay = (
   callback: (state: RootState, delta: number, xrFrame?: _XRFrame) => void,
   renderPriority = 0
 ) => {
-  const isPlaying = useAppStore((state) => state.isPlaying);
-  useFrame(isPlaying ? callback : noop, renderPriority);
+  const playState = useAppStore((state) => state.playState);
+  useFrame(playState === 'play' ? callback : noop, renderPriority);
 };
