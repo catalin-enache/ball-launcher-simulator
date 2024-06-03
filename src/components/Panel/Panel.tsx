@@ -28,7 +28,8 @@ export const config = {
   armRotationEnd: ARM_ROTATION_END,
   armCenterPercentage: ARM_CENTER_PERCENTAGE,
   ballDiameter: BALL_DIAMETER,
-  torque: TORQUE
+  torque: TORQUE,
+  hitFloorPositionX: 0
 };
 
 interface PanelProps {
@@ -139,6 +140,14 @@ export const Panel = (props: PanelProps) => {
       })
       .on('click', () => {
         onAction('stop');
+      });
+    folder
+      .addBinding(config, 'hitFloorPositionX', {
+        label: 'Hit Floor PositionX',
+        readonly: true
+      })
+      .on('change', () => {
+        onChange('ballDiameter');
       });
     folder
       .addButton({

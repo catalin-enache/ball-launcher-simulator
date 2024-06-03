@@ -91,6 +91,7 @@ export function Experience() {
   const hitFloorPosition = useRef({ x: 0, y: 0 });
   const onHitFloorPosition = useCallback((position: { x: number; y: number }) => {
     hitFloorPosition.current = position;
+    config.hitFloorPositionX = position.x;
   }, []);
 
   const ballBasePositionXYZ = useMemo(() => {
