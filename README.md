@@ -1,4 +1,4 @@
-# ThreeJS Inspector
+# ThreeJS Ball Launcher Simulator
 
 ## Running the project
 
