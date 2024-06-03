@@ -10,7 +10,7 @@ export const Robot = (props: ThreeElements['group']) => {
 
   useEffect(() => {
     const loader = new FBXLoader();
-    loader.load('/models/robot/robot.fbx', (object) => {
+    loader.load('models/robot/robot.fbx', (object) => {
       const mesh = object.children[0] as THREE.Mesh;
       object.rotation.set(0, -Math.PI / 2, 0);
       object.updateMatrix();

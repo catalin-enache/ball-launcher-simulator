@@ -10,7 +10,7 @@ export const Ball = (props: ThreeElements['group']) => {
 
   useEffect(() => {
     const loader = new FBXLoader();
-    loader.load('/models/robot/ball.fbx', (object) => {
+    loader.load('models/robot/ball.fbx', (object) => {
       const mesh = object.children[0] as THREE.Mesh;
       mesh.geometry.scale(10, 10, 10);
       mesh.castShadow = true;
