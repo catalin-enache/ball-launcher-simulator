@@ -109,11 +109,11 @@ export const getHVComponentsFromLinearVelocity = (velocity: number, angle: numbe
 };
 
 export const getBallMotion = (velocity: number, angle: number, time: number) => {
-  // calculate the horizontal and vertical motion of the ball
+  const adjustedAngle = angle + Math.PI / 2; // perpendicular to the arm
   // x = vcosθt
   // y = vsinθt - 1/2gt^2
   return {
-    x: velocity * Math.cos(angle) * time,
-    y: velocity * Math.sin(angle) * time - 0.5 * 9.81 * time ** 2
+    x: velocity * Math.cos(adjustedAngle) * time,
+    y: velocity * Math.sin(adjustedAngle) * time - 0.5 * 9.81 * time ** 2
   };
 };
