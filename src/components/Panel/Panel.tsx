@@ -59,7 +59,7 @@ export const Panel = (props: PanelProps) => {
       .addBinding(config, 'armDiameter', {
         label: 'Arm Diameter',
         min: 0.01,
-        max: 0.02,
+        max: 0.05,
         pointerScale: 0.001,
         step: 0.001
       })
