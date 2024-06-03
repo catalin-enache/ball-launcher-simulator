@@ -87,6 +87,11 @@ export function Experience() {
 
   const currentArmRotation = isPlaying ? armRotationStart + angularDisplacement : armRotationStart;
 
+  const hitFloorPosition = useRef({ x: 0, y: 0 });
+  const onHitFloorPosition = useCallback((position: { x: number; y: number }) => {
+    hitFloorPosition.current = position;
+  }, []);
+
   const ballBasePositionXYZ = useMemo(() => {
     const x = armLength - armLength * armCenterPercentage - ballDiameter / 2;
     const y = ROBOT_FLOOR_DISTANCE + armDiameter / 2 + ballDiameter / 2;
@@ -108,21 +113,25 @@ export function Experience() {
   } else {
     // after release
     // ball motion >>
-    const timeSinceRelease = time - timeToReachEndAngle;
-    const motion = getBallMotionAfterRelease(linearVelocityAtRelease, currentArmRotation, timeSinceRelease);
-    ballBasePosition.x = motion.x + ballPositionAtReleaseRef.current.x;
-    ballBasePosition.y = motion.y + ballPositionAtReleaseRef.current.y;
-    // << ball motion
-    // ball rotation >>
-    const ballRotationAngle = getBallRotationAfterRelease(angularVelocityAtRelease, timeSinceRelease);
-    ballRotation.z = ballRotationAtReleaseRef.current.z + ballRotationAngle;
-    // << ball rotation
+    if (+ballBasePosition.y.toFixed(6) > ballDiameter) {
+      const timeSinceRelease = time - timeToReachEndAngle;
+      const motion = getBallMotionAfterRelease(linearVelocityAtRelease, currentArmRotation, timeSinceRelease);
+      ballBasePosition.x = motion.x + ballPositionAtReleaseRef.current.x;
+      ballBasePosition.y = motion.y + ballPositionAtReleaseRef.current.y;
+      // << ball motion
+      // ball rotation >>
+      const ballRotationAngle = getBallRotationAfterRelease(angularVelocityAtRelease, timeSinceRelease);
+      ballRotation.z = ballRotationAtReleaseRef.current.z + ballRotationAngle;
+      // << ball rotation
+    } else {
+      ballBasePosition.y = hitFloorPosition.current.y + ballDiameter / 2;
+      ballBasePosition.x = hitFloorPosition.current.x;
+    }
   }
   // << apply ball changes
 
   releaseAngleWasReachedRef.current = time > timeToReachEndAngle;
   if (releaseAngleWasReachedRef.current && !ballPositionAtReleaseHasBeenCopiedRef.current) {
-    // console.log('copying ball position at release');
     ballPositionAtReleaseRef.current.copy(ballBasePosition);
     ballRotationAtReleaseRef.current.copy(ballRotation);
     ballPositionAtReleaseHasBeenCopiedRef.current = true;
@@ -222,9 +231,9 @@ export function Experience() {
 
       <ambientLight color={'#ffffff'} intensity={1} position={[0, 1, 0]} />
 
-      <mesh name="floor" rotation={[degToRad(90), 0, 0]} position={[0, 0, 0]} receiveShadow>
+      <mesh name="floor" rotation={[degToRad(-90), 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="white" side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#051323" side={THREE.FrontSide} />
       </mesh>
 
       <mesh name="wall" rotation={[0, 0, 0]} position={[0, 2, WALL_Z_POSITION]} receiveShadow castShadow>
@@ -258,10 +267,11 @@ export function Experience() {
         />
         <DrawTrajectory
           linearVelocityAtRelease={linearVelocityAtRelease}
-          interval={0.001}
+          interval={0.0001}
           totalTime={5}
           ballBasePositionXYZ={ballBasePositionXYZ}
           armRotationEnd={armRotationEnd}
+          onHitFloorPosition={onHitFloorPosition}
         />
       </>
 
