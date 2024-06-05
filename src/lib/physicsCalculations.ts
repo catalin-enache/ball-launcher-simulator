@@ -27,6 +27,7 @@ const getMomentOfInertiaAboutCenterOfTheMass = (mass: number, length: number) =>
 
 export const getArmMomentOfInertia = (mass: number, fullLength: number, pivotPercentage: number) => {
   // calculate the moment of inertia using Parallel Axis Theorem
+  // https://www.youtube.com/watch?v=JrkimXqnCLw&ab_channel=TheOrganicChemistryTutor
   // I = Icm + md^2
   const middle = fullLength / 2;
   const distanceToAxisOfRotation = fullLength * pivotPercentage;
